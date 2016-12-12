@@ -10,9 +10,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -51,6 +57,10 @@ public class ProcesarArchivosInsert {
                 if(erroresDeInsert>0){
                     JOptionPane.showMessageDialog(null, "Hubo "+erroresDeInsert+" errores de insercion a la DB \n Revise las matriculas en el archivo residual");
                 }
+                Date hoy=new Date();
+                DateFormat datef= new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
+                File fCopia=new File (System.getProperty("java.io.tmpdir") + "registrospendientes_"+datef.format(hoy)+".dat");               
+                Files.copy(f.getAbsoluteFile().toPath(), fCopia.getAbsoluteFile().toPath(),StandardCopyOption.REPLACE_EXISTING);
                 
                 return 1;//Encontró el archivo. Ejecucion normal
                 
