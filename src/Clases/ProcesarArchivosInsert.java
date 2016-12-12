@@ -30,38 +30,47 @@ import javax.swing.JOptionPane;
 public class ProcesarArchivosInsert {
     public static int procesar(){
         BufferedReader leer=null;
+        //Creamops el objeto del archivo de registrospendientes.dat exista
         File f=new File(System.getProperty("java.io.tmpdir") + "registrospendientes.dat");
         int erroresDeInsert=0;
         try {
+            //Leemos del archivo
+            //Si no hay archivo se lanzará a exepcion FileNotFoundException
             leer = new BufferedReader(new FileReader(f));
             String stm;
             try {
+                //Abrimos conexion
                 Conexion miconexion = new Conexion();
                 Connection conn = miconexion.getConnection();
+                //Cargamos la linea leída del archivo a un a string
                 stm = leer.readLine();
-                
+                //Mientras la cadena no sea nula significa que leyó algo
                 while (stm!=null)
                 {
+                    //Intenta crear un statement con la cadena extraída del archivo
                     try {
                         Statement stmt = conn.createStatement();
                         stmt.executeUpdate(stm);
                     } catch (SQLException ex) {
-                        erroresDeInsert++;
+                        erroresDeInsert++;//La cadena leída no pudo ser insertada en la DB
                     }
-                    System.out.println(stm);
+                    //Lee la siguiente linea en el archivo
                     stm=leer.readLine();
                 }
                 leer.close();
-                //TODO: hacer que renombre el archivo una vez leído a
-                //El nombreDelArchivo_fecha
+                //Mensaje de notificación de errores de insert
                 if(erroresDeInsert>0){
                     JOptionPane.showMessageDialog(null, "Hubo "+erroresDeInsert+" errores de insercion a la DB \n Revise las matriculas en el archivo residual");
                 }
                 Date hoy=new Date();
-                DateFormat datef= new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
-                File fCopia=new File (System.getProperty("java.io.tmpdir") + "registrospendientes_"+datef.format(hoy)+".dat");               
-                Files.copy(f.getAbsoluteFile().toPath(), fCopia.getAbsoluteFile().toPath(),StandardCopyOption.REPLACE_EXISTING);
+                DateFormat datef= new SimpleDateFormat("dd-MM-yyyy HH-mm-ss");
                 
+                //Preparamos el objeto del archivo donde se va a copiar para mantener un registro
+                File fCopia=new File (System.getProperty("java.io.tmpdir") + "registrospendientes_"+datef.format(hoy)+".dat");               
+                //System.out.println(""+f.getAbsoluteFile().toPath()+"|"+ fCopia.getAbsoluteFile().toPath()+"|"+StandardCopyOption.REPLACE_EXISTING);
+                //Copiamos el archivo 'registrospendientes.dat' a 'resgistrospendientes_fecha hora.dat'  y enseguida eliminamos el original
+                Files.copy(f.getAbsoluteFile().toPath(), fCopia.getAbsoluteFile().toPath(),StandardCopyOption.REPLACE_EXISTING);
+                f.delete();
                 return 1;//Encontró el archivo. Ejecucion normal
                 
             } catch (IOException ex) {
@@ -70,7 +79,6 @@ public class ProcesarArchivosInsert {
             }
         } catch (FileNotFoundException ex) {
             return 0; //No encontró el archivo. Ejecucion normal
-        } finally{
         }
     }
 }
